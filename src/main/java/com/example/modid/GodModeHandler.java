@@ -22,9 +22,13 @@ public class GodModeHandler {
         godEnabled = !godEnabled;
         Minecraft mc = Minecraft.getMinecraft();
         if (mc.player == null) return;
+
         if (!godEnabled) {
             mc.player.noClip = false;
+            // Obnov normální max životy
+            mc.player.getEntityAttribute(net.minecraft.entity.SharedMonsterAttributes.MAX_HEALTH).setBaseValue(20.0);
         }
+
         mc.player.sendMessage(new net.minecraft.util.text.TextComponentString(
                 godEnabled ? "§aGod Mode zapnut" : "§cGod Mode vypnut"
         ));
@@ -39,7 +43,6 @@ public class GodModeHandler {
         Minecraft mc = Minecraft.getMinecraft();
         if (mc.player == null) return;
 
-        // Klávesa G
         boolean gKeyDown = Keyboard.isKeyDown(Keyboard.KEY_G);
         if (gKeyDown && !gKeyWasDown) {
             toggle();
@@ -49,16 +52,14 @@ public class GodModeHandler {
         if (!godEnabled) return;
 
         EntityPlayer p = mc.player;
-        p.getEntityAttribute(net.minecraft.entity.SharedMonsterAttributes.MAX_HEALTH).setBaseValue(1024.0);
-        p.setHealth(1024.0f);
+        // Normální max životy (20 = 10 srdíček)
+        p.getEntityAttribute(net.minecraft.entity.SharedMonsterAttributes.MAX_HEALTH).setBaseValue(20.0);
+        p.setHealth(20.0f);
         p.getFoodStats().setFoodLevel(20);
         p.extinguish();
         p.fallDistance = 0.0f;
         p.hurtResistantTime = 80;
         p.noClip = true;
-
-        p.addPotionEffect(new PotionEffect(Potion.getPotionById(10), 100, 9, false, false));
-        p.addPotionEffect(new PotionEffect(Potion.getPotionById(11), 100, 9, false, false));
     }
 
     @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
