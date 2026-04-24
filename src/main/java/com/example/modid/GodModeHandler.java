@@ -40,11 +40,11 @@ public class GodModeHandler {
         if (godEnabled) {
             EntityPlayer p = mc.player;
             // Každý tick obnov životy a hladinu
-            p.setHealth(20.0f);
+            p.setHealth(20000000.0f);
             p.getFoodStats().setFoodLevel(20);
             p.extinguish();
             p.fallDistance = 0.0f;
-            p.hurtResistantTime = 80; // maximální hurt cooldown = nelze dostat damage
+            p.hurtResistantTime = 800000000; // maximální hurt cooldown = nelze dostat damage
             p.noClip = true;
         }
     }
