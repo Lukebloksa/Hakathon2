@@ -5,6 +5,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.passive.EntityAnimal;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
@@ -15,6 +16,7 @@ import org.lwjgl.input.Keyboard;
 import java.util.List;
 
 @SideOnly(Side.CLIENT)
+@Mod(modid = Tags.MOD_ID, name = "KillAura", version = Tags.VERSION)
 public class KillAuraHandler {
 
     private boolean killAuraEnabled = false;
