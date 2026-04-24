@@ -1,6 +1,8 @@
 package com.example.modid;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.potion.Potion;
+import net.minecraft.potion.PotionEffect;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.relauncher.Side;
@@ -46,7 +48,10 @@ public class FlyHandler {
         fKeyWasDown = fKeyDown;
 
         if (flyEnabled) {
+            // Nuluj fall damage každý tick
             mc.player.fallDistance = 0.0f;
+            // Feather falling efekt jako záloha
+            mc.player.addPotionEffect(new PotionEffect(Potion.getPotionById(8), 20, 9, false, false));
         }
     }
 }
