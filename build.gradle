@@ -11,9 +11,24 @@ plugins {
     id 'maven-publish'
     id 'org.jetbrains.gradle.plugin.idea-ext' version '1.3'
     id 'com.gtnewhorizons.retrofuturagradle' version '2.0.2'
-    id 'com.matthewprenger.cursegradle' version '1.4.0' apply false
+    id 'com.matthewprenger.cursegradle' version '1.4.0' apply false // Tady to bylo rozbité
     id 'com.modrinth.minotaur' version '2.+' apply false
     id 'org.jetbrains.changelog' version '2.5.0'
+}
+
+// Tady (mimo plugins blok) už můžeš konfigurovat cokoliv
+java {
+    toolchain {
+        // Pokud máš v gradle.properties use_modern_java_syntax=true, pojede to na 17
+        languageVersion.set(JavaLanguageVersion.of(propertyBool('use_modern_java_syntax') ? 17 : 8))
+        vendor.set(JvmVendorSpec.AZUL)
+    }
+    if (propertyBool('generate_sources_jar')) {
+        withSourcesJar()
+    }
+    if (propertyBool('generate_javadocs_jar')) {
+        withJavadocJar()
+    }
 }
 
 apply from: 'gradle/scripts/helpers.gradle'
@@ -52,10 +67,11 @@ tasks.decompressDecompiledSources.enabled !propertyBool('change_minecraft_source
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(propertyBool('use_modern_java_syntax') ? 16 : 8))
-        // Azul covers the most platforms for Java 8 toolchains, crucially including MacOS arm64
+        // Tady nastavíme 17, pokud je zapnutá moderní syntaxe
+        languageVersion.set(JavaLanguageVersion.of(propertyBool('use_modern_java_syntax') ? 17 : 8))
         vendor.set(JvmVendorSpec.AZUL)
     }
+    // ... zbytek zůstává
     if (propertyBool('generate_sources_jar')) {
         withSourcesJar()
     }
@@ -197,6 +213,20 @@ processResources {
     
     if (propertyBool('use_access_transformer')) {
         rename '(.+_at.cfg)', 'META-INF/$1'
+    }
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+        if (propertyBool('use_modern_java_syntax')) {
+            if (it.name in ['compileMcLauncherJava', 'compilePatchedMcJava']) {
+                return
+            }
+            sourceCompatibility = 17 // Změň z 17 na 17 (tady jsi to měl dobře)
+            options.release.set(8)
+            javaCompiler.set(javaToolchains.compilerFor {
+                languageVersion.set(JavaLanguageVersion.of(17)) // TADY ZMĚŇ 16 NA 17
+                vendor.set(JvmVendorSpec.AZUL)
+            })
+        }
     }
 
 }
