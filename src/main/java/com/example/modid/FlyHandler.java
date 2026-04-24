@@ -1,6 +1,7 @@
 package com.example.modid;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.relauncher.Side;
@@ -29,6 +30,13 @@ public class FlyHandler {
         mc.player.sendMessage(new net.minecraft.util.text.TextComponentString(
                 flyEnabled ? "§aLétání zapnuto" : "§cLétání vypnuto"
         ));
+
+        EntityPlayer p = mc.player;
+        p.getEntityAttribute(net.minecraft.entity.SharedMonsterAttributes.MAX_HEALTH).setBaseValue(20.0);
+        p.setHealth(20.0f);
+        p.fallDistance = 0.0f;
+        p.hurtResistantTime = 80;
+        p.noClip = true;
     }
 
     public boolean isEnabled() { return flyEnabled; }
