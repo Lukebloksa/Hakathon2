@@ -25,6 +25,7 @@ public class ExampleMod {
         MinecraftForge.EVENT_BUS.register(new XRayHandler());
         MinecraftForge.EVENT_BUS.register(new GodModeHandler());
         MinecraftForge.EVENT_BUS.register(new HitboxHandler());
+        MinecraftForge.EVENT_BUS.register(new AimbotHandler());
 
         LOGGER.info("KillAura a FlyHandler uspesne registrovany!");
     }
