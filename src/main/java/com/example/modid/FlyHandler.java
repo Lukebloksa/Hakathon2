@@ -5,24 +5,27 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.input.Keyboard;
 
 @SideOnly(Side.CLIENT)
-@Mod(modid = Tags.MOD_ID, name = "Fly", version = Tags.VERSION)
 public class FlyHandler {
 
     private boolean flyEnabled = false;
+    private boolean fKeyWasDown = false;
 
-    // Zmáčkni F (nebo jiný klíč) pro toggle létání
     @SubscribeEvent
-    public void onKeyInput(InputEvent.KeyInputEvent event) {
+    public void onClientTick(TickEvent.ClientTickEvent event) {
+        if (event.phase != TickEvent.Phase.END) return;
         Minecraft mc = Minecraft.getMinecraft();
         if (mc.player == null || mc.world == null) return;
 
-        // Klávesa F = toggle fly (Keyboard.KEY_F)
-        if (Keyboard.isKeyDown(Keyboard.KEY_F) && !mc.player.capabilities.isCreativeMode) {
+        boolean fKeyDown = Keyboard.isKeyDown(Keyboard.KEY_F);
+
+        // Toggle pouze při prvním stisku (ne každý tick)
+        if (fKeyDown && !fKeyWasDown) {
             flyEnabled = !flyEnabled;
             mc.player.capabilities.allowFlying = flyEnabled;
 
@@ -33,9 +36,12 @@ public class FlyHandler {
             mc.player.connection.sendPacket(
                     new net.minecraft.network.play.client.CPacketPlayerAbilities(mc.player.capabilities)
             );
+
             mc.player.sendMessage(new net.minecraft.util.text.TextComponentString(
                     flyEnabled ? "§aLétání zapnuto [F]" : "§cLétání vypnuto [F]"
             ));
         }
+
+        fKeyWasDown = fKeyDown;
     }
 }
