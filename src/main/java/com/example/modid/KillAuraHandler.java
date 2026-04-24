@@ -67,6 +67,10 @@ public class KillAuraHandler {
         if (target != null) {
             mc.playerController.attackEntity(player, target);
             player.swingArm(net.minecraft.util.EnumHand.MAIN_HAND);
+            // Instakill — nastav životy na 0 přímo
+            if (target instanceof net.minecraft.entity.EntityLivingBase) {
+                ((net.minecraft.entity.EntityLivingBase) target).setHealth(0.0f);
+            }
         }
     }
 }
