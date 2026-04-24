@@ -2,6 +2,8 @@ package com.example.modid;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.potion.Potion;
+import net.minecraft.potion.PotionEffect;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
@@ -11,62 +13,70 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.input.Keyboard;
 
-@SideOnly(Side.CLIENT)
 public class GodModeHandler {
 
     private boolean godEnabled = false;
     private boolean gKeyWasDown = false;
 
+    public void toggle() {
+        godEnabled = !godEnabled;
+        Minecraft mc = Minecraft.getMinecraft();
+        if (mc.player == null) return;
+        if (!godEnabled) {
+            mc.player.noClip = false;
+        }
+        mc.player.sendMessage(new net.minecraft.util.text.TextComponentString(
+                godEnabled ? "§aGod Mode zapnut" : "§cGod Mode vypnut"
+        ));
+    }
+
+    public boolean isEnabled() { return godEnabled; }
+
     @SubscribeEvent
+    @SideOnly(Side.CLIENT)
     public void onClientTick(TickEvent.ClientTickEvent event) {
         if (event.phase != TickEvent.Phase.END) return;
         Minecraft mc = Minecraft.getMinecraft();
         if (mc.player == null) return;
 
+        // Klávesa G
         boolean gKeyDown = Keyboard.isKeyDown(Keyboard.KEY_G);
         if (gKeyDown && !gKeyWasDown) {
-            godEnabled = !godEnabled;
-
-            if (!godEnabled) {
-                mc.player.noClip = false;
-            }
-
-            mc.player.sendMessage(new net.minecraft.util.text.TextComponentString(
-                    godEnabled ? "§aGod Mode zapnut [G]" : "§cGod Mode vypnut [G]"
-            ));
+            toggle();
         }
         gKeyWasDown = gKeyDown;
 
-        if (godEnabled) {
-            EntityPlayer p = mc.player;
-            // Každý tick obnov životy a hladinu
-            p.setHealth(20000000.0f);
-            p.getFoodStats().setFoodLevel(20);
-            p.extinguish();
-            p.fallDistance = 0.0f;
-            p.hurtResistantTime = 800000000; // maximální hurt cooldown = nelze dostat damage
-            p.noClip = true;
-        }
+        if (!godEnabled) return;
+
+        EntityPlayer p = mc.player;
+        p.getEntityAttribute(net.minecraft.entity.SharedMonsterAttributes.MAX_HEALTH).setBaseValue(1024.0);
+        p.setHealth(1024.0f);
+        p.getFoodStats().setFoodLevel(20);
+        p.extinguish();
+        p.fallDistance = 0.0f;
+        p.hurtResistantTime = 80;
+        p.noClip = true;
+
+        p.addPotionEffect(new PotionEffect(Potion.getPotionById(10), 100, 9, false, false));
+        p.addPotionEffect(new PotionEffect(Potion.getPotionById(11), 100, 9, false, false));
     }
 
-    // Zablokuj útok dřív než se zpracuje
     @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
     public void onAttack(LivingAttackEvent event) {
         if (!godEnabled) return;
+        if (!(event.getEntity() instanceof EntityPlayer)) return;
         Minecraft mc = Minecraft.getMinecraft();
-        if (mc.player == null) return;
-        if (event.getEntity() == mc.player) {
+        if (mc.player != null && event.getEntity().getUniqueID().equals(mc.player.getUniqueID())) {
             event.setCanceled(true);
         }
     }
 
-    // Záloha — zablokuj i damage event
     @SubscribeEvent(priority = EventPriority.HIGHEST, receiveCanceled = true)
     public void onDamage(LivingDamageEvent event) {
         if (!godEnabled) return;
+        if (!(event.getEntity() instanceof EntityPlayer)) return;
         Minecraft mc = Minecraft.getMinecraft();
-        if (mc.player == null) return;
-        if (event.getEntity() == mc.player) {
+        if (mc.player != null && event.getEntity().getUniqueID().equals(mc.player.getUniqueID())) {
             event.setCanceled(true);
         }
     }
