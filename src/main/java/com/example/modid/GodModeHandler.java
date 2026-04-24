@@ -30,6 +30,8 @@ public class GodModeHandler {
 
         if (godEnabled) {
             mc.player.setHealth(20.0f);
+            mc.player.noClip = true;
+            mc.player.heal(20.0f);
             mc.player.getFoodStats().setFoodLevel(20);
             mc.player.extinguish();
         }
