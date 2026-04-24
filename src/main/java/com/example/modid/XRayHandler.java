@@ -1,8 +1,14 @@
 package com.example.modid;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.renderer.texture.TextureMap;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
@@ -26,7 +32,6 @@ public class XRayHandler {
     private int scanCooldown = 0;
     private static final int SCAN_RADIUS = 16;
 
-    // Minerály které chceš vidět
     private boolean isOre(Block block) {
         return block == Blocks.DIAMOND_ORE
                 || block == Blocks.EMERALD_ORE
@@ -57,7 +62,6 @@ public class XRayHandler {
 
         if (!xrayEnabled) return;
 
-        // Skenuj okolí každých 40 ticků (2 sekundy)
         scanCooldown++;
         if (scanCooldown < 40) return;
         scanCooldown = 0;
@@ -93,54 +97,67 @@ public class XRayHandler {
         GlStateManager.pushMatrix();
         GlStateManager.translate(-px, -py, -pz);
         GlStateManager.disableDepth();
-        GlStateManager.disableTexture2D();
         GlStateManager.enableBlend();
         GlStateManager.blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
-        GlStateManager.glLineWidth(2.0f);
+        GlStateManager.enableTexture2D();
+        GlStateManager.color(1.0f, 1.0f, 1.0f, 0.8f);
 
-        for (BlockPos pos : orePositions) {
-            Block block = mc.world.getBlockState(pos).getBlock();
+        Tessellator tessellator = Tessellator.getInstance();
+        BufferBuilder buffer = tessellator.getBuffer();
 
-            // Barva podle typu rudy
-            if (block == Blocks.DIAMOND_ORE)         GlStateManager.color(0.0f, 1.0f, 1.0f, 0.6f);
-            else if (block == Blocks.EMERALD_ORE)    GlStateManager.color(0.0f, 1.0f, 0.0f, 0.6f);
-            else if (block == Blocks.GOLD_ORE)       GlStateManager.color(1.0f, 1.0f, 0.0f, 0.6f);
-            else if (block == Blocks.IRON_ORE)       GlStateManager.color(0.8f, 0.5f, 0.2f, 0.6f);
-            else if (block == Blocks.REDSTONE_ORE || block == Blocks.LIT_REDSTONE_ORE)
-                GlStateManager.color(1.0f, 0.0f, 0.0f, 0.6f);
-            else if (block == Blocks.LAPIS_ORE)      GlStateManager.color(0.0f, 0.0f, 1.0f, 0.6f);
-            else                                      GlStateManager.color(0.5f, 0.5f, 0.5f, 0.6f);
+        for (BlockPos pos : new ArrayList<>(orePositions)) {
+            IBlockState state = mc.world.getBlockState(pos);
 
-            drawBox(pos);
+            mc.getTextureManager().bindTexture(TextureMap.LOCATION_BLOCKS_TEXTURE);
+            TextureAtlasSprite sprite = mc.getBlockRendererDispatcher()
+                    .getBlockModelShapes()
+                    .getTexture(state);
+
+            if (sprite == null) continue;
+
+            float u1 = sprite.getMinU(), u2 = sprite.getMaxU();
+            float v1 = sprite.getMinV(), v2 = sprite.getMaxV();
+
+            double x = pos.getX(), y = pos.getY(), z = pos.getZ();
+
+            buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
+
+            // Spodek
+            buffer.pos(x,   y,   z  ).tex(u1, v2).endVertex();
+            buffer.pos(x+1, y,   z  ).tex(u2, v2).endVertex();
+            buffer.pos(x+1, y,   z+1).tex(u2, v1).endVertex();
+            buffer.pos(x,   y,   z+1).tex(u1, v1).endVertex();
+            // Vršek
+            buffer.pos(x,   y+1, z+1).tex(u1, v2).endVertex();
+            buffer.pos(x+1, y+1, z+1).tex(u2, v2).endVertex();
+            buffer.pos(x+1, y+1, z  ).tex(u2, v1).endVertex();
+            buffer.pos(x,   y+1, z  ).tex(u1, v1).endVertex();
+            // Přední
+            buffer.pos(x,   y,   z  ).tex(u1, v2).endVertex();
+            buffer.pos(x,   y+1, z  ).tex(u1, v1).endVertex();
+            buffer.pos(x+1, y+1, z  ).tex(u2, v1).endVertex();
+            buffer.pos(x+1, y,   z  ).tex(u2, v2).endVertex();
+            // Zadní
+            buffer.pos(x+1, y,   z+1).tex(u1, v2).endVertex();
+            buffer.pos(x+1, y+1, z+1).tex(u1, v1).endVertex();
+            buffer.pos(x,   y+1, z+1).tex(u2, v1).endVertex();
+            buffer.pos(x,   y,   z+1).tex(u2, v2).endVertex();
+            // Levá
+            buffer.pos(x,   y,   z+1).tex(u1, v2).endVertex();
+            buffer.pos(x,   y+1, z+1).tex(u1, v1).endVertex();
+            buffer.pos(x,   y+1, z  ).tex(u2, v1).endVertex();
+            buffer.pos(x,   y,   z  ).tex(u2, v2).endVertex();
+            // Pravá
+            buffer.pos(x+1, y,   z  ).tex(u1, v2).endVertex();
+            buffer.pos(x+1, y+1, z  ).tex(u1, v1).endVertex();
+            buffer.pos(x+1, y+1, z+1).tex(u2, v1).endVertex();
+            buffer.pos(x+1, y,   z+1).tex(u2, v2).endVertex();
+
+            tessellator.draw();
         }
 
         GlStateManager.enableDepth();
-        GlStateManager.enableTexture2D();
         GlStateManager.disableBlend();
         GlStateManager.popMatrix();
-    }
-
-    private void drawBox(BlockPos pos) {
-        double x = pos.getX(), y = pos.getY(), z = pos.getZ();
-        GL11.glBegin(GL11.GL_LINE_STRIP);
-        GL11.glVertex3d(x,     y,     z);
-        GL11.glVertex3d(x+1,   y,     z);
-        GL11.glVertex3d(x+1,   y,     z+1);
-        GL11.glVertex3d(x,     y,     z+1);
-        GL11.glVertex3d(x,     y,     z);
-        GL11.glVertex3d(x,     y+1,   z);
-        GL11.glVertex3d(x+1,   y+1,   z);
-        GL11.glVertex3d(x+1,   y+1,   z+1);
-        GL11.glVertex3d(x,     y+1,   z+1);
-        GL11.glVertex3d(x,     y+1,   z);
-        GL11.glEnd();
-        GL11.glBegin(GL11.GL_LINES);
-        GL11.glVertex3d(x+1,   y,     z);
-        GL11.glVertex3d(x+1,   y+1,   z);
-        GL11.glVertex3d(x+1,   y,     z+1);
-        GL11.glVertex3d(x+1,   y+1,   z+1);
-        GL11.glVertex3d(x,     y,     z+1);
-        GL11.glVertex3d(x,     y+1,   z+1);
-        GL11.glEnd();
     }
 }
