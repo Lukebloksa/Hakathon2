@@ -18,7 +18,7 @@ public class KillAuraHandler {
 
     private boolean killAuraEnabled = false;
     private boolean kKeyWasDown = false;
-    private static final double RANGE = 5.0;
+    private static final double RANGE = 10.0;
     private int tickCooldown = 0;
 
     @SubscribeEvent

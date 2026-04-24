@@ -41,6 +41,9 @@ public class FlyHandler {
                     flyEnabled ? "§aLétání zapnuto [F]" : "§cLétání vypnuto [F]"
             ));
         }
+        if (flyEnabled || mc.player.capabilities.isFlying) {
+            mc.player.fallDistance = 0.0F;
+        }
 
         fKeyWasDown = fKeyDown;
     }
