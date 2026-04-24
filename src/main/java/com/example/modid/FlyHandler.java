@@ -5,11 +5,13 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import org.lwjgl.input.Keyboard;
 
 @SideOnly(Side.CLIENT)
 public class FlyHandler {
 
     private boolean flyEnabled = false;
+    private boolean fKeyWasDown = false;
 
     public void toggle() {
         flyEnabled = !flyEnabled;
@@ -36,6 +38,12 @@ public class FlyHandler {
         if (event.phase != TickEvent.Phase.END) return;
         Minecraft mc = Minecraft.getMinecraft();
         if (mc.player == null) return;
+
+        boolean fKeyDown = Keyboard.isKeyDown(Keyboard.KEY_F);
+        if (fKeyDown && !fKeyWasDown) {
+            toggle();
+        }
+        fKeyWasDown = fKeyDown;
 
         if (flyEnabled) {
             mc.player.fallDistance = 0.0f;
